@@ -24,3 +24,9 @@ class Embedder:
                 "embedding":embedding.tolist()
             })
         return result
+
+    def embed_query(self, query):
+        return self.model.encode(
+            query,
+            normalize_embeddings=True
+        )
