@@ -4,7 +4,7 @@ class Embedder:
     def __init__(self,model_name:str="all-MiniLM-L6-v2"):
         self.model=SentenceTransformer(model_name)
 
-    def emebed_chunks(self,chunks:list[dict])->list[dict]:
+    def embed_chunks(self,chunks:list[dict])->list[dict]:
         texts=[chunk["text"] for chunk in chunks]
 
         embeddings=self.model.encode(
