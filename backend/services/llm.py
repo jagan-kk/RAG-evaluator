@@ -16,6 +16,24 @@ class LLM:
 
         prompt = f"""
 Answer the question using only the context below.
+IMPORTANT RULES: 
+1. Do not use information that is not present in the context. 
+2. Do not invent or assume information. 
+3. Use Markdown formatting. 
+4. Organize the answer using appropriate headings. 
+5. Use bullet points for lists. 
+6. If the question asks about a person, use sections such as: 
+- Name 
+- Contact 
+- Education 
+- Skills 
+- Interests 
+- Projects 
+- Other relevant information
+ 7. Only include sections for which information exists in the context. 
+ 8. If the context does not contain the answer, say: "The provided context does not contain enough information to answer this question."
+ 
+
 
 Context:
 {context}
@@ -33,7 +51,11 @@ Answer:
                     "role": "user",
                     "content": prompt
                 }
-            ]
+            ],
+            stream=True
         )
 
-        return response.choices[0].message.content
+        for chunk in response:
+            content = chunk.choices[0].delta.content
+            if content:
+                yield content
