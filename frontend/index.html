@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>RAG Assistant</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+    <div class="container">
+
+        <h1>RAG Assistant</h1>
+
+        <!-- PDF Upload -->
+        <div class="upload-section">
+
+            <input
+                type="file"
+                id="pdfInput"
+                accept=".pdf"
+            >
+
+            <button id="uploadButton">
+                Upload PDF
+            </button>
+
+            <p id="uploadStatus"></p>
+
+        </div>
+
+
+        <!-- Chat -->
+        <div class="chat-section">
+
+            <textarea
+                id="questionInput"
+                placeholder="Ask a question about your PDF..."
+            ></textarea>
+
+            <button id="askButton">
+                Ask
+            </button>
+
+        </div>
+
+
+        <!-- Answer -->
+        <div class="answer-section">
+
+            <h2>Answer</h2>
+
+            <p id="answer"></p>
+
+        </div>
+
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="script.js"></script>
+
+    <script src="script.js"></script>
+
+</body>
+</html>
