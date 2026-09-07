@@ -29,12 +29,13 @@ def evaluate_retrieval(k=5):
         # Search Qdrant
         retrieved = vector_store.search(
             query_embedding.tolist(),
+            query=question,
             limit=k
         )
 
         # Extract text from Qdrant results
         retrieved_chunks = [
-            result.payload["text"]
+            result["text"] if isinstance(result, dict) else result.payload["text"]
             for result in retrieved
         ]
 

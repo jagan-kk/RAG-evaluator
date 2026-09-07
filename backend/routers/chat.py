@@ -20,11 +20,12 @@ def chat(request:ChatRequest):
     query_embedding = embedder.embed_query(request.question)
     results = vector_store.search(
         query_embedding.tolist(),
+        query=request.question,
         limit=5
     )
 
-    context="/n/n".join(
-        result.payload["text"]
+    context="\n\n".join(
+        result["text"] if isinstance(result, dict) else result.payload["text"]
         for result in results
     )
 
