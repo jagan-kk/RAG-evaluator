@@ -3,65 +3,211 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-    <title>RAG Assistant</title>
-
+    <title>RAG & Evaluator</title>
     <link rel="stylesheet" href="style.css">
 </head>
-
 <body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <span class="logo-icon">◆</span>
+                    <span class="logo-text">RAG Studio</span>
+                </div>
+            </div>
+            <nav class="sidebar-nav">
+                <button class="nav-btn active" data-tab="rag">
+                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                    </svg>
+                    <span>RAG</span>
+                </button>
+                <button class="nav-btn" data-tab="evaluator">
+                    <svg class="nav-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10"/>
+                        <line x1="12" y1="20" x2="12" y2="4"/>
+                        <line x1="6" y1="20" x2="6" y2="14"/>
+                    </svg>
+                    <span>Evaluator</span>
+                </button>
+            </nav>
+            <div class="sidebar-footer">
+                <div class="status-dot"></div>
+                <span>Backend connected</span>
+            </div>
+        </aside>
 
-    <div class="container">
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- RAG Tab -->
+            <section id="rag-tab" class="tab-content active">
+                <header class="page-header">
+                    <h2>Document Ingestion</h2>
+                    <p>Upload a PDF to build your vector knowledge base</p>
+                </header>
 
-        <h1>RAG Assistant</h1>
+                <div class="card">
+                    <div class="upload-area" id="upload-area">
+                        <input type="file" id="pdf-input" accept=".pdf" hidden>
 
-        <!-- PDF Upload -->
-        <div class="upload-section">
+                        <div id="upload-placeholder" class="upload-placeholder">
+                            <div class="upload-icon-wrap">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                                    <polyline points="17 8 12 3 7 8"/>
+                                    <line x1="12" y1="3" x2="12" y2="15"/>
+                                </svg>
+                            </div>
+                            <p class="upload-title">Drop PDF here or click to browse</p>
+                            <p class="upload-sub">PDF files up to 50MB</p>
+                        </div>
 
-            <input
-                type="file"
-                id="pdfInput"
-                accept=".pdf"
-            >
+                        <div id="upload-progress" class="upload-progress hidden">
+                            <div class="spinner"></div>
+                            <p class="progress-label" id="progress-text">Processing document...</p>
+                            <div class="progress-track">
+                                <div class="progress-fill" id="progress-fill"></div>
+                            </div>
+                        </div>
+                    </div>
 
-            <button id="uploadButton">
-                Upload PDF
-            </button>
+                    <div id="upload-result" class="upload-result hidden">
+                        <div class="result-header">
+                            <div class="result-icon-ok">✓</div>
+                            <div>
+                                <p class="result-title">Document Ready</p>
+                                <p class="result-subtitle" id="result-filename">—</p>
+                            </div>
+                        </div>
+                        <div class="result-stats">
+                            <div class="stat">
+                                <span class="stat-value" id="result-pages">0</span>
+                                <span class="stat-label">Pages</span>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat">
+                                <span class="stat-value" id="result-chunks">0</span>
+                                <span class="stat-label">Chunks</span>
+                            </div>
+                            <div class="stat-divider"></div>
+                            <div class="stat">
+                                <span class="stat-value" id="result-embeddings">0</span>
+                                <span class="stat-label">Embeddings</span>
+                            </div>
+                        </div>
+                        <button class="btn btn-outline" id="clear-btn">Upload Another</button>
+                    </div>
 
-            <p id="uploadStatus"></p>
+                    <div id="error-message" class="alert alert-error hidden"></div>
+                </div>
 
-        </div>
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Chat with Document</h3>
+                        <span class="badge" id="chat-status-badge">Offline</span>
+                    </div>
+                    <div class="chat-box">
+                        <div class="chat-messages" id="chat-messages">
+                            <div class="empty-state">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" class="empty-icon">
+                                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+                                </svg>
+                                <p>Upload a PDF to start chatting</p>
+                            </div>
+                        </div>
+                        <div class="chat-input-row">
+                            <input type="text" id="chat-input" placeholder="Ask a question about your document..." disabled>
+                            <button class="btn btn-accent btn-icon" id="send-btn" disabled>
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <line x1="22" y1="2" x2="11" y2="13"/>
+                                    <polygon points="22 2 15 22 11 13 2 9 22 2"/>
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
 
+            <!-- Evaluator Tab -->
+            <section id="evaluator-tab" class="tab-content">
+                <header class="page-header">
+                    <h2>Retrieval Evaluation</h2>
+                    <p>Measure retrieval quality against your evaluation dataset</p>
+                </header>
 
-        <!-- Chat -->
-        <div class="chat-section">
+                <div class="card">
+                    <div class="eval-controls">
+                        <div class="control-group">
+                            <label>Top-K</label>
+                            <input type="number" id="k-value" value="5" min="1" max="20">
+                        </div>
+                        <div class="control-group">
+                            <label>Dataset</label>
+                            <select id="dataset-source">
+                                <option value="auto">Auto (from dataset.py)</option>
+                                <option value="manual">Manual Entry</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-accent" id="run-eval-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-svg">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                            Run Evaluation
+                        </button>
+                    </div>
 
-            <textarea
-                id="questionInput"
-                placeholder="Ask a question about your PDF..."
-            ></textarea>
+                    <div id="eval-progress" class="eval-progress hidden">
+                        <div class="spinner"></div>
+                        <p id="eval-progress-text">Running evaluation...</p>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="eval-progress-fill"></div>
+                        </div>
+                    </div>
 
-            <button id="askButton">
-                Ask
-            </button>
+                    <div id="eval-error-message" class="alert alert-error hidden"></div>
 
-        </div>
+                    <div id="eval-results" class="eval-results hidden">
+                        <div class="metrics-cards" id="metrics-summary"></div>
 
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width:40%">Question</th>
+                                        <th>Hit Rate</th>
+                                        <th>Recall</th>
+                                        <th>Precision</th>
+                                        <th>MRR</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="metrics-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
 
-        <!-- Answer -->
-        <div class="answer-section">
-
-            <h2>Answer</h2>
-
-            <p id="answer"></p>
-
-        </div>
-
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Manual Dataset Entry</h3>
+                        <button class="btn btn-ghost btn-sm" id="add-entry-btn">+ Add Row</button>
+                    </div>
+                    <div id="dataset-entries">
+                        <div class="entry-row">
+                            <div class="entry-fields">
+                                <input type="text" class="input-field" placeholder="Question">
+                                <textarea class="input-field textarea-field" placeholder="Relevant chunks (one per line)"></textarea>
+                            </div>
+                            <button class="btn btn-ghost btn-sm remove-entry">✕</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
     </div>
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="script.js"></script>
-
-    <script src="script.js"></script>
-
 </body>
 </html>
