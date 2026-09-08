@@ -241,6 +241,59 @@ function renderEvalResults(results, averages) {
 }
 
 // ──────────────────────────────────────────
+// Faithfulness Evaluation
+// ──────────────────────────────────────────
+$("run-faith-btn").addEventListener("click", runFaithfulness);
+
+async function runFaithfulness() {
+    const k = parseInt($("k-value").value) || 5;
+
+    hide($("faith-error-message"));
+    hide($("faith-results"));
+    show($("faith-progress"));
+    $("faith-progress-fill").style.width = "10%";
+    $("faith-progress-text").textContent = "Starting faithfulness evaluation (10 questions)...";
+
+    try {
+        $("faith-progress-fill").style.width = "30%";
+        $("faith-progress-text").textContent = "Generating answers and evaluating faithfulness...";
+
+        const res = await fetch(`${API_BASE}/evaluation/faithfulness?k=${k}`);
+
+        if (!res.ok) {
+            const errData = await res.json().catch(() => ({}));
+            throw new Error(errData.detail || `Evaluation failed (${res.status})`);
+        }
+
+        $("faith-progress-fill").style.width = "80%";
+        $("faith-progress-text").textContent = "Computing results...";
+
+        const data = await res.json();
+
+        $("faith-progress-fill").style.width = "100%";
+        $("faith-progress-text").textContent = "Done";
+
+        await new Promise(r => setTimeout(r, 300));
+        hide($("faith-progress"));
+        renderFaithResults(data.results);
+        show($("faith-results"));
+    } catch (err) {
+        hide($("faith-progress"));
+        $("faith-error-message").textContent = err.message;
+        show($("faith-error-message"));
+    }
+}
+
+function renderFaithResults(results) {
+    $("faith-tbody").innerHTML = results.map(r => `
+        <tr>
+            <td>${escapeHtml(r.question)}</td>
+            <td>${escapeHtml(r.answer.substring(0, 100))}${r.answer.length > 100 ? '...' : ''}</td>
+            <td>${r.faithfulness !== null ? r.faithfulness.toFixed(3) : 'Error'}</td>
+        </tr>`).join("");
+}
+
+// ──────────────────────────────────────────
 // Manual Dataset Entry
 // ──────────────────────────────────────────
 $("add-entry-btn").addEventListener("click", addEntry);

@@ -192,6 +192,43 @@
 
                 <div class="card">
                     <div class="card-header">
+                        <h3>Faithfulness Evaluation</h3>
+                        <button class="btn btn-accent" id="run-faith-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-svg">
+                                <polygon points="5 3 19 12 5 21 5 3"/>
+                            </svg>
+                            Run Faithfulness
+                        </button>
+                    </div>
+
+                    <div id="faith-progress" class="eval-progress hidden">
+                        <div class="spinner"></div>
+                        <p id="faith-progress-text">Running faithfulness evaluation...</p>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="faith-progress-fill"></div>
+                        </div>
+                    </div>
+
+                    <div id="faith-error-message" class="alert alert-error hidden"></div>
+
+                    <div id="faith-results" class="eval-results hidden">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width:50%">Question</th>
+                                        <th style="width:30%">Answer</th>
+                                        <th>Faithfulness</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="faith-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
                         <h3>Manual Dataset Entry</h3>
                         <button class="btn btn-ghost btn-sm" id="add-entry-btn">+ Add Row</button>
                     </div>
