@@ -72,7 +72,7 @@ async function uploadPDF(file) {
 
         $("result-filename").textContent = data.file_name;
         $("result-pages").textContent = data.pages;
-        $("result-chunks").textContent = data.chunks;
+        $("result-chunks").textContent = data.new_chunks;
         $("result-embeddings").textContent = data.embeddings;
         show($("upload-result"));
 
@@ -139,12 +139,14 @@ async function sendMessage() {
     const question = input.value.trim();
     if (!question) return;
 
+    const provider = $("chat-provider").value;
+
     input.value = "";
     addMessage("user", question);
     const assistantMsg = addMessage("assistant thinking", "Thinking...");
 
     try {
-        const res = await fetch(`${API_BASE}/chat/`, {
+        const res = await fetch(`${API_BASE}/chat/?provider=${provider}`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ question })
@@ -247,18 +249,21 @@ $("run-faith-btn").addEventListener("click", runFaithfulness);
 
 async function runFaithfulness() {
     const k = parseInt($("k-value").value) || 5;
+    const provider = $("faith-provider").value;
+    const start = parseInt($("faith-start").value) || 0;
+    const end = parseInt($("faith-end").value) || 10;
 
     hide($("faith-error-message"));
     hide($("faith-results"));
     show($("faith-progress"));
     $("faith-progress-fill").style.width = "10%";
-    $("faith-progress-text").textContent = "Starting faithfulness evaluation (10 questions)...";
+    $("faith-progress-text").textContent = `Starting faithfulness evaluation (questions ${start}-${end - 1}) with ${provider === "ollama" ? "Ollama (local)" : "OpenRouter (cloud)"}...`;
 
     try {
         $("faith-progress-fill").style.width = "30%";
         $("faith-progress-text").textContent = "Generating answers and evaluating faithfulness...";
 
-        const res = await fetch(`${API_BASE}/evaluation/faithfulness?k=${k}`);
+        const res = await fetch(`${API_BASE}/evaluation/faithfulness?k=${k}&provider=${provider}&start=${start}&end=${end}`);
 
         if (!res.ok) {
             const errData = await res.json().catch(() => ({}));

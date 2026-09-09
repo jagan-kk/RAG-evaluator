@@ -81,11 +81,12 @@ def evaluate_retrieval(k=5):
     return results
 
 
-def evaluate_faithfulness(k=5):
+def evaluate_faithfulness(k=5, provider="openrouter", start=0, end=10):
 
     results = []
+    subset = evaluation_data[start:end]
 
-    for i, item in enumerate(evaluation_data):
+    for i, item in enumerate(subset):
 
         question = item["question"]
 
@@ -105,9 +106,12 @@ def evaluate_faithfulness(k=5):
 
             context = "\n\n".join(retrieved_chunks)
 
-            answer = "".join(llm.generate(context=context, question=question))
+            if provider == "ollama":
+                answer = llm.generate_ollama(context=context, question=question)
+            else:
+                answer = "".join(llm.generate(context=context, question=question))
 
-            score = faithfulness.evaluate(context=context, answer=answer)
+            score = faithfulness.evaluate(context=context, answer=answer, provider=provider)
 
             results.append({
                 "question": question,

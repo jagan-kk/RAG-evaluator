@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 from openai import OpenAI
+import ollama
 
 load_dotenv()
 client = OpenAI(
@@ -8,12 +9,7 @@ client = OpenAI(
     api_key=os.getenv("OPENROUTER_API_KEY")
 )
 
-
-class LLM:
-
-    def generate(self, context, question):
-
-        prompt = f"""
+PROMPT_TEMPLATE = """
 Answer the question using only the context below.
 IMPORTANT RULES: 
 1. Do not use information that is not present in the context. 
@@ -31,8 +27,6 @@ IMPORTANT RULES:
 - Other relevant information
  7. Only include sections for which information exists in the context. 
  8. If the context does not contain the answer, say: "The provided context does not contain enough information to answer this question."
- 
-
 
 Context:
 {context}
@@ -42,6 +36,13 @@ Question:
 
 Answer:
 """
+
+
+class LLM:
+
+    def generate(self, context, question):
+
+        prompt = PROMPT_TEMPLATE.format(context=context, question=question)
 
         response = client.chat.completions.create(
             model="liquid/lfm-2.5-2.6b:free",
@@ -60,3 +61,14 @@ Answer:
             if content:
                 answer+=content
                 yield content
+
+    def generate_ollama(self, context, question):
+
+        prompt = PROMPT_TEMPLATE.format(context=context, question=question)
+
+        response = ollama.generate(
+            model="qwen3.5:4b",
+            prompt=prompt
+        )
+
+        return response["response"]

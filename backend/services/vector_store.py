@@ -1,5 +1,7 @@
+import uuid
+import hashlib
 from qdrant_client import QdrantClient
-from qdrant_client.models import Distance, VectorParams, PointStruct
+from qdrant_client.models import Distance, VectorParams, PointStruct, Filter, FieldCondition, MatchValue
 from services.reranker import Reranker
 
 
@@ -20,31 +22,60 @@ class VectorStore:
                 )
             )
 
+    def _hash_text(self, text):
+        return hashlib.md5(text.strip().encode()).hexdigest()
+
+    def _get_existing_hashes(self):
+        try:
+            results = self.client.query_points(
+                collection_name=self.collection_name,
+                query=[0] * 384,
+                limit=10000,
+                query_filter=None
+            )
+            hashes = set()
+            for point in results.points:
+                if point.payload and "text" in point.payload:
+                    hashes.add(self._hash_text(point.payload["text"]))
+            return hashes
+        except Exception:
+            return set()
+
     def store(self, embedded_chunks):
+        existing_hashes = self._get_existing_hashes()
         points = []
 
-        for index, chunk in enumerate(embedded_chunks):
+        for chunk in embedded_chunks:
+            chunk_hash = self._hash_text(chunk["text"])
+            if chunk_hash in existing_hashes:
+                continue
+
             point = PointStruct(
-                id=index,
+                id=str(uuid.uuid4()),
                 vector=chunk["embedding"],
                 payload={
                     "text": chunk["text"],
-                    "metadata": chunk["metadata"]
+                    "metadata": chunk["metadata"],
+                    "hash": chunk_hash
                 }
             )
             points.append(point)
+            existing_hashes.add(chunk_hash)
 
-        self.client.upsert(
-            collection_name=self.collection_name,
-            points=points
-        )
+        if points:
+            self.client.upsert(
+                collection_name=self.collection_name,
+                points=points
+            )
+
+        return len(points)
 
     def search(self, query_embedding, query=None, limit=5):
 
         results = self.client.query_points(
             collection_name=self.collection_name,
             query=query_embedding,
-            limit=limit * 2 if query else limit
+            limit=30
         )
 
         points = results.points
@@ -56,5 +87,5 @@ class VectorStore:
 
         return [
             {"text": result.payload["text"], "metadata": result.payload.get("metadata", {})}
-            for result in points
+            for result in points[:limit]
         ]

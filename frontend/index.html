@@ -108,7 +108,15 @@
                 <div class="card">
                     <div class="card-header">
                         <h3>Chat with Document</h3>
-                        <span class="badge" id="chat-status-badge">Offline</span>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="control-group">
+                                <select id="chat-provider">
+                                    <option value="openrouter">OpenRouter (cloud)</option>
+                                    <option value="ollama">Ollama (local)</option>
+                                </select>
+                            </div>
+                            <span class="badge" id="chat-status-badge">Offline</span>
+                        </div>
                     </div>
                     <div class="chat-box">
                         <div class="chat-messages" id="chat-messages">
@@ -193,12 +201,29 @@
                 <div class="card">
                     <div class="card-header">
                         <h3>Faithfulness Evaluation</h3>
-                        <button class="btn btn-accent" id="run-faith-btn">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-svg">
-                                <polygon points="5 3 19 12 5 21 5 3"/>
-                            </svg>
-                            Run Faithfulness
-                        </button>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="control-group">
+                                <label>From</label>
+                                <input type="number" id="faith-start" value="0" min="0" max="9" style="width: 60px;">
+                            </div>
+                            <div class="control-group">
+                                <label>To</label>
+                                <input type="number" id="faith-end" value="10" min="1" max="10" style="width: 60px;">
+                            </div>
+                            <div class="control-group">
+                                <label>Provider</label>
+                                <select id="faith-provider">
+                                    <option value="openrouter">OpenRouter (cloud)</option>
+                                    <option value="ollama">Ollama (local)</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-accent" id="run-faith-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-svg">
+                                    <polygon points="5 3 19 12 5 21 5 3"/>
+                                </svg>
+                                Run Faithfulness
+                            </button>
+                        </div>
                     </div>
 
                     <div id="faith-progress" class="eval-progress hidden">
