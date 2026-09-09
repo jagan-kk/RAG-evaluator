@@ -61,7 +61,7 @@ def relevance_evaluation(
     )
 
     valid_scores = [
-        r["relevance"]
+        r["relevance"]["score"]
         for r in results
         if r["relevance"] is not None
     ]

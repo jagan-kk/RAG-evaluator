@@ -1,4 +1,5 @@
 import os
+import re
 import json
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -42,6 +43,18 @@ Return ONLY valid JSON in this format:
 
 class Relevance:
 
+    def _parse_json(self, text):
+        try:
+            return json.loads(text)
+        except (json.JSONDecodeError, ValueError):
+            match = re.search(r'\{[^{}]*"score"[^{}]*\}', text, re.DOTALL)
+            if match:
+                try:
+                    return json.loads(match.group())
+                except (json.JSONDecodeError, ValueError):
+                    pass
+            return {"score": 0.0, "reason": "Failed to parse response"}
+
     def evaluate(self, question: str, answer: str, provider: str = "openrouter"):
 
         prompt = PROMPT.format(question=question, answer=answer)
@@ -51,7 +64,7 @@ class Relevance:
                 model="qwen3.5:4b",
                 prompt=prompt
             )
-            result = json.loads(response["response"])
+            result = self._parse_json(response["response"])
         else:
             response = openrouter_client.chat.completions.create(
                 model="liquid/lfm-2.5-2.6b:free",
@@ -63,6 +76,6 @@ class Relevance:
                 ],
                 temperature=0
             )
-            result = json.loads(response.choices[0].message.content)
+            result = self._parse_json(response.choices[0].message.content)
 
         return result

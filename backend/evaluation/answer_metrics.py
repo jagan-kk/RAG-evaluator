@@ -107,12 +107,20 @@ def evaluate_faithfulness(k=5, provider="openrouter", start=0, end=10):
 
             context = "\n\n".join(retrieved_chunks)
 
+            print(f"\n[Faithfulness] Q: {question}")
+            print(f"  Context length: {len(context)} chars")
+            print(f"  Chunks retrieved: {len(retrieved_chunks)}")
+
             if provider == "ollama":
                 answer = llm.generate_ollama(context=context, question=question)
             else:
                 answer = "".join(llm.generate(context=context, question=question))
 
+            print(f"  Answer: {answer[:100]}...")
+
             score = faithfulness.evaluate(context=context, answer=answer, provider=provider)
+
+            print(f"  Faithfulness: {score}")
 
             results.append({
                 "question": question,
@@ -120,6 +128,7 @@ def evaluate_faithfulness(k=5, provider="openrouter", start=0, end=10):
                 "faithfulness": score
             })
         except Exception as e:
+            print(f"  Error: {str(e)}")
             results.append({
                 "question": question,
                 "answer": f"Error: {str(e)}",
@@ -152,6 +161,10 @@ def evaluate_relevance(k=5,provider="openrouter",start=0,end=10):
 
             context = "\n\n".join(retrieved_chunks)
 
+            print(f"\n[Relevance] Q: {question}")
+            print(f"  Context length: {len(context)} chars")
+            print(f"  Chunks retrieved: {len(retrieved_chunks)}")
+
             if provider=="ollama":
                 answer=llm.generate_ollama(
                     context=context,
@@ -165,11 +178,15 @@ def evaluate_relevance(k=5,provider="openrouter",start=0,end=10):
                     )
                 )
 
+            print(f"  Answer: {answer[:100]}...")
+
             score = relevance.evaluate(
                 question=question,
                 answer=answer,
                 provider=provider
             )
+
+            print(f"  Relevance: {score}")
 
             results.append({
                 "question":question,
@@ -178,6 +195,7 @@ def evaluate_relevance(k=5,provider="openrouter",start=0,end=10):
             })
 
         except Exception as e:
+            print(f"  Error: {str(e)}")
             results.append({
                 "question":question,
                 "answer":f"Error:{str(e)}",
