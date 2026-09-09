@@ -6,7 +6,7 @@ class Chunker:
         return sentences
 
 
-    def chunk_docs(self,documents,chunk_size=500):
+    def chunk_docs(self,documents,chunk_size=500,overlap_sentences=3):
 
         chunks=[]
         for docs in documents:
@@ -15,19 +15,24 @@ class Chunker:
 
             sentences=self.split_sentences(text)
             current_chunk=""
-            last_sentence = ""
+            recent_sentences=[]
 
             for sentence in sentences:
                 if len(current_chunk)+len(sentence)<=chunk_size:
                     current_chunk+=sentence+" "
-                    last_sentence=sentence
+                    recent_sentences.append(sentence)
+                    if len(recent_sentences)>overlap_sentences:
+                        recent_sentences.pop(0)
 
                 else:
                     chunks.append({
                         "text":current_chunk.strip(),
                         "metadata":metadata.copy()
                     })
-                    current_chunk=last_sentence +" "+ sentence +" "
+                    current_chunk=" ".join(recent_sentences)+" "+sentence+" "
+                    recent_sentences.append(sentence)
+                    if len(recent_sentences)>overlap_sentences:
+                        recent_sentences.pop(0)
 
             if current_chunk:
                 chunks.append({

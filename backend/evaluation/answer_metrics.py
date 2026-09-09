@@ -5,7 +5,7 @@ from evaluation.retrieval_metrics import (
     precision_at_k,
     reciprocal_rank
 )
-
+from evaluation.relevance import Relevance
 from services.embeder import Embedder
 from services.vector_store import VectorStore
 from services.llm import LLM
@@ -16,6 +16,7 @@ embedder = Embedder()
 vector_store = VectorStore()
 llm = LLM()
 faithfulness = Faithfulness()
+relevance=Relevance()
 
 
 def evaluate_retrieval(k=5):
@@ -81,11 +82,12 @@ def evaluate_retrieval(k=5):
     return results
 
 
-def evaluate_faithfulness(k=5):
+def evaluate_faithfulness(k=5, provider="openrouter", start=0, end=10):
 
     results = []
+    subset = evaluation_data[start:end]
 
-    for i, item in enumerate(evaluation_data):
+    for i, item in enumerate(subset):
 
         question = item["question"]
 
@@ -105,9 +107,20 @@ def evaluate_faithfulness(k=5):
 
             context = "\n\n".join(retrieved_chunks)
 
-            answer = "".join(llm.generate(context=context, question=question))
+            print(f"\n[Faithfulness] Q: {question}")
+            print(f"  Context length: {len(context)} chars")
+            print(f"  Chunks retrieved: {len(retrieved_chunks)}")
 
-            score = faithfulness.evaluate(context=context, answer=answer)
+            if provider == "ollama":
+                answer = llm.generate_ollama(context=context, question=question)
+            else:
+                answer = "".join(llm.generate(context=context, question=question))
+
+            print(f"  Answer: {answer[:100]}...")
+
+            score = faithfulness.evaluate(context=context, answer=answer, provider=provider)
+
+            print(f"  Faithfulness: {score}")
 
             results.append({
                 "question": question,
@@ -115,10 +128,77 @@ def evaluate_faithfulness(k=5):
                 "faithfulness": score
             })
         except Exception as e:
+            print(f"  Error: {str(e)}")
             results.append({
                 "question": question,
                 "answer": f"Error: {str(e)}",
                 "faithfulness": None
             })
 
+    return results
+
+def evaluate_relevance(k=5,provider="openrouter",start=0,end=10):
+
+    results =[]
+    subset=evaluation_data[start:end]
+
+    for i, item in enumerate(subset):
+        question = item["question"]
+
+        try:
+            query_embedding = embedder.embed_query(question)
+            retrieved = vector_store.search(
+                query_embedding.tolist(),
+                query=question,
+                limit=k
+
+            )
+
+            retrieved_chunks=[
+                result["text"] if isinstance(result,dict) else result.payload["text"]
+                for result in retrieved
+            ]
+
+            context = "\n\n".join(retrieved_chunks)
+
+            print(f"\n[Relevance] Q: {question}")
+            print(f"  Context length: {len(context)} chars")
+            print(f"  Chunks retrieved: {len(retrieved_chunks)}")
+
+            if provider=="ollama":
+                answer=llm.generate_ollama(
+                    context=context,
+                    question=question
+                )
+            else:
+                answer="".join(
+                    llm.generate(
+                        context=context,
+                        question=question
+                    )
+                )
+
+            print(f"  Answer: {answer[:100]}...")
+
+            score = relevance.evaluate(
+                question=question,
+                answer=answer,
+                provider=provider
+            )
+
+            print(f"  Relevance: {score}")
+
+            results.append({
+                "question":question,
+                "answer":answer,
+                "relevance":score
+            })
+
+        except Exception as e:
+            print(f"  Error: {str(e)}")
+            results.append({
+                "question":question,
+                "answer":f"Error:{str(e)}",
+                "relevance":None
+            })
     return results

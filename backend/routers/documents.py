@@ -28,12 +28,13 @@ async def uploads(file:UploadFile=File(...)):
     documents=loader.read_pdf(file_path)
     chunked_doc=chunking.chunk_docs(documents)
     embeded=embeder.embed_chunks(chunked_doc)
-    dbstorage.store(embeded)
+    new_chunks=dbstorage.store(embeded)
 
     return {
         "file_name":file.filename,
         "content_type":file.content_type,
         "pages": len(documents),
         "chunks": len(chunked_doc),
-        "embeddings":len(embeded)
+        "embeddings":len(embeded),
+        "new_chunks": new_chunks
     }
