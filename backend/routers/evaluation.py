@@ -1,5 +1,5 @@
 from fastapi import APIRouter
-from evaluation.answer_metrics import evaluate_retrieval, evaluate_faithfulness
+from evaluation.answer_metrics import evaluate_retrieval, evaluate_faithfulness,evaluate_relevance
 
 router = APIRouter(
     prefix="/evaluation",
@@ -43,4 +43,35 @@ def faithfulness_evaluation(k: int = 5, provider: str = "openrouter", start: int
     return {
         "results": results,
         "average": avg_faithfulness
+    }
+
+
+@router.get("/relevance")
+def relevance_evaluation(
+    k: int = 5,
+    provider: str = "openrouter",
+    start: int = 0,
+    end: int = 10
+):
+    results = evaluate_relevance(
+        k=k,
+        provider=provider,
+        start=start,
+        end=end
+    )
+
+    valid_scores = [
+        r["relevance"]
+        for r in results
+        if r["relevance"] is not None
+    ]
+
+    avg_relevance = (
+        sum(valid_scores) / len(valid_scores)
+        if valid_scores else 0
+    )
+
+    return {
+        "results": results,
+        "average": avg_relevance
     }

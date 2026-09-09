@@ -5,7 +5,7 @@ from evaluation.retrieval_metrics import (
     precision_at_k,
     reciprocal_rank
 )
-
+from evaluation.relevance import Relevance
 from services.embeder import Embedder
 from services.vector_store import VectorStore
 from services.llm import LLM
@@ -16,6 +16,7 @@ embedder = Embedder()
 vector_store = VectorStore()
 llm = LLM()
 faithfulness = Faithfulness()
+relevance=Relevance()
 
 
 def evaluate_retrieval(k=5):
@@ -125,4 +126,61 @@ def evaluate_faithfulness(k=5, provider="openrouter", start=0, end=10):
                 "faithfulness": None
             })
 
+    return results
+
+def evaluate_relevance(k=5,provider="openrouter",start=0,end=10):
+
+    results =[]
+    subset=evaluation_data[start:end]
+
+    for i, item in enumerate(subset):
+        question = item["question"]
+
+        try:
+            query_embedding = embedder.embed_query(question)
+            retrieved = vector_store.search(
+                query_embedding.tolist(),
+                query=question,
+                limit=k
+
+            )
+
+            retrieved_chunks=[
+                result["text"] if isinstance(result,dict) else result.payload["text"]
+                for result in retrieved
+            ]
+
+            context = "\n\n".join(retrieved_chunks)
+
+            if provider=="ollama":
+                answer=llm.generate_ollama(
+                    context=context,
+                    question=question
+                )
+            else:
+                answer="".join(
+                    llm.generate(
+                        context=context,
+                        question=question
+                    )
+                )
+
+            score = relevance.evaluate(
+                question=question,
+                answer=answer,
+                provider=provider
+            )
+
+            results.append({
+                "question":question,
+                "answer":answer,
+                "relevance":score
+            })
+
+        except Exception as e:
+            results.append({
+                "question":question,
+                "answer":f"Error:{str(e)}",
+                "relevance":None
+            })
     return results

@@ -254,6 +254,61 @@
 
                 <div class="card">
                     <div class="card-header">
+                        <h3>Relevance Evaluation</h3>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <div class="control-group">
+                                <label>From</label>
+                                <input type="number" id="rel-start" value="0" min="0" max="9" style="width: 60px;">
+                            </div>
+                            <div class="control-group">
+                                <label>To</label>
+                                <input type="number" id="rel-end" value="10" min="1" max="10" style="width: 60px;">
+                            </div>
+                            <div class="control-group">
+                                <label>Provider</label>
+                                <select id="rel-provider">
+                                    <option value="openrouter">OpenRouter (cloud)</option>
+                                    <option value="ollama">Ollama (local)</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-accent" id="run-rel-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="btn-svg">
+                                    <polygon points="5 3 19 12 5 21 5 3"/>
+                                </svg>
+                                Run Relevance
+                            </button>
+                        </div>
+                    </div>
+
+                    <div id="rel-progress" class="eval-progress hidden">
+                        <div class="spinner"></div>
+                        <p id="rel-progress-text">Running relevance evaluation...</p>
+                        <div class="progress-track">
+                            <div class="progress-fill" id="rel-progress-fill"></div>
+                        </div>
+                    </div>
+
+                    <div id="rel-error-message" class="alert alert-error hidden"></div>
+
+                    <div id="rel-results" class="eval-results hidden">
+                        <div class="table-wrap">
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th style="width:35%">Question</th>
+                                        <th style="width:35%">Answer</th>
+                                        <th>Score</th>
+                                        <th>Reason</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rel-tbody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
                         <h3>Manual Dataset Entry</h3>
                         <button class="btn btn-ghost btn-sm" id="add-entry-btn">+ Add Row</button>
                     </div>
